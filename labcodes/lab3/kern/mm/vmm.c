@@ -367,12 +367,8 @@ do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     
     /*LAB3 EXERCISE 1: 2015080062*/
                   
-    /*if((ptep = get_pte(mm->pgdir, addr, 1)) == NULL){     //(1) try to find a pte, if pte's PT(Page Table) isn't existed, then create a PT.
+    if((ptep = get_pte(mm->pgdir, addr, 1)) == NULL){     //(1) try to find a pte, if pte's PT(Page Table) isn't existed, then create a PT.
         cprintf("get_pte(mm->pgdir, addr, 1) in do_pgfault in vmm.c has failed\n");
-        goto failed;
-    }*/
-        if ((ptep = get_pte(mm->pgdir, addr, 1)) == NULL) {
-        cprintf("get_pte in do_pgfault failed\n");
         goto failed;
     }
     if (*ptep == 0) {   //(2) if the phy addr isn't exist, then alloc a page & map the phy addr with logical addr
