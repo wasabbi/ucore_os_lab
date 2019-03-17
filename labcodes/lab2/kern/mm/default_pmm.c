@@ -98,6 +98,9 @@ free_area_t free_area;
 #define free_list (free_area.free_list)
 #define nr_free (free_area.nr_free)
 
+list_entry_t *next_fit_start = &free_list;
+
+
 static void
 default_init(void) {
     list_init(&free_list);
@@ -159,13 +162,13 @@ default_free_pages(struct Page *base, size_t n) {
     }
     base->property = n;
     SetPageProperty(base);
-    list_entry_t *le = list_next(&free_list);
-	list_entry_t  *le_before_base = NULL;
-	uint32_t already_insert = 0;
-    while (le != &free_list) {
+    list_entry_t *le = list_next(next_fit_start);
+    list_entry_t  *le_before_base = NULL;
+
+    while (le != next_fit_start) {
         p = le2page(le, page_link);
         if (p <= base)
-			le_before_base = le;
+            le_before_base = le;
         
         if (base + base->property == p) {		//clear p, add base
             base->property += p->property;
