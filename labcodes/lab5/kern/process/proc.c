@@ -404,18 +404,18 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     */
 
     if ((proc = alloc_proc()) == NULL) {    //    1. call alloc_proc to allocate a proc_struct
-        cprintf("alloc_proc() in do_fork in proc.c has failed");
+
         goto fork_out;
     }
     proc->parent = current;
     assert(current->wait_state == 0);
     
     if(setup_kstack(proc) != 0){    //    2. call setup_kstack to allocate a kernel stack for child process
-        cprintf("setup_kstack(proc) in do_fork in proc.c has failed");
+
         goto bad_fork_cleanup_proc;
     }
     if(copy_mm(clone_flags, proc) != 0){      //    3. call copy_mm to dup OR share mm according clone_flag
-        cprintf("copy_mm(clone_flags, proc) in do_fork in proc.c has failed");
+
         goto bad_fork_cleanup_kstack;
     }
     copy_thread(proc, stack, tf);   //    4. call copy_thread to setup tf & context in proc_struct
@@ -424,8 +424,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     {
         proc->pid = get_pid();         //    5. insert proc_struct into hash_list && proc_list
         hash_proc(proc);                    
-        list_add(&proc_list, &(proc->list_link));
-        nr_process ++;
+        set_links(proc);
     }
     local_intr_restore(intr_flag);
     wakeup_proc(proc);              //    6. call wakeup_proc to make the new child process RUNNABLE
@@ -631,8 +630,8 @@ load_icode(unsigned char *binary, size_t size) {
      tf->tf_cs = USER_CS;
      tf->tf_ds=tf->tf_es=tf->tf_ss = USER_DS;
      tf->tf_esp = USTACKTOP;
-     tf->eip = elf->e_entry;
-     tf->eflags = FL_IF;    // enable Interrupt
+     tf->tf_eip = elf->e_entry;
+     tf->tf_eflags = FL_IF;    // enable Interrupt
      
     ret = 0;
 out:
