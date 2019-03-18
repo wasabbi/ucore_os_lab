@@ -103,6 +103,12 @@ alloc_proc(void) {
      *       uint32_t flags;                             // Process flag
      *       char name[PROC_NAME_LEN + 1];               // Process name
      */
+     //LAB5 2015080062 : (update LAB4 steps)
+    /*
+     * below fields(add in LAB5) in proc_struct need to be initialized	
+     *       uint32_t wait_state;                        // waiting state
+     *       struct proc_struct *cptr, *yptr, *optr;     // relations between processes
+	 */
      proc->state = PROC_UNINIT;
      proc->pid = -1;
      proc->runs = 0;
