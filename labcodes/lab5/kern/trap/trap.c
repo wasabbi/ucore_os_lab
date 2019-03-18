@@ -57,6 +57,7 @@ idt_init(void) {
         for(int i=0; i < 256; i++){
                 SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);        //#define SETGATE(gate, istrap, sel, off, dpl)
         }
+        SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);
         lidt(&idt_pd);  //let CPU know where is the IDT
 
 }
@@ -222,13 +223,14 @@ trap_dispatch(struct trapframe *tf) {
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
-		         /* LAB5 YOUR CODE */
+		         /* LAB5 2015080062 */
         /* you should upate you lab1 code (just add ONE or TWO lines of code):
          *    Every TICK_NUM cycle, you should set current process's current->need_resched = 1
          */
         ticks++;
         if(ticks % TICK_NUM == 0){
-                print_ticks();
+                assert(current != NULL);
+                current->need_resched = 1;
         }
         break;
     case IRQ_OFFSET + IRQ_COM1:
