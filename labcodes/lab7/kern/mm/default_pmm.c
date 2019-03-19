@@ -12,7 +12,7 @@
  *  Please refer to Page 196~198, Section 8.2 of Yan Wei Min's Chinese book
  * "Data Structure -- C programming language".
 */
-// LAB2 EXERCISE 1: YOUR CODE
+// LAB2 EXERCISE 1: 2015080062
 // you should rewrite functions: `default_init`, `default_init_memmap`,
 // `default_alloc_pages`, `default_free_pages`.
 /*
@@ -98,6 +98,9 @@ free_area_t free_area;
 #define free_list (free_area.free_list)
 #define nr_free (free_area.nr_free)
 
+list_entry_t *next_fit_start = &free_list;
+
+
 static void
 default_init(void) {
     list_init(&free_list);
@@ -116,7 +119,7 @@ default_init_memmap(struct Page *base, size_t n) {
     base->property = n;
     SetPageProperty(base);
     nr_free += n;
-    list_add(&free_list, &(base->page_link));
+    list_add_before(&free_list, &(base->page_link));
 }
 
 static struct Page *
@@ -135,12 +138,13 @@ default_alloc_pages(size_t n) {
         }
     }
     if (page != NULL) {
-        list_del(&(page->page_link));
         if (page->property > n) {
             struct Page *p = page + n;
             p->property = page->property - n;
-            list_add(&free_list, &(p->page_link));
-    }
+            SetPageProperty(p);
+            list_add_after(&(page->page_link), &(p->page_link));
+        }
+        list_del(&(page->page_link));
         nr_free -= n;
         ClearPageProperty(page);
     }
@@ -158,24 +162,35 @@ default_free_pages(struct Page *base, size_t n) {
     }
     base->property = n;
     SetPageProperty(base);
-    list_entry_t *le = list_next(&free_list);
-    while (le != &free_list) {
+    list_entry_t *le = list_next(next_fit_start);
+    list_entry_t  *le_before_base = NULL;
+
+    while (le != next_fit_start) {
         p = le2page(le, page_link);
-        le = list_next(le);
-        if (base + base->property == p) {
+        if (p <= base)
+            le_before_base = le;
+        
+        if (base + base->property == p) {		//clear p, add base
             base->property += p->property;
             ClearPageProperty(p);
+            le_before_base = (&(p->page_link))->prev;
             list_del(&(p->page_link));
         }
-        else if (p + p->property == base) {
+        else if (p + p->property == base) {		//clear base, let p be
             p->property += base->property;
             ClearPageProperty(base);
             base = p;
+            le_before_base = (&(p->page_link))->prev;
             list_del(&(p->page_link));
         }
+        
+        le = list_next(le);
     }
     nr_free += n;
-    list_add(&free_list, &(base->page_link));
+    if(le_before_base == NULL)
+        list_add_after(&free_list, &(base->page_link));
+    else
+        list_add_after(le_before_base, &(base->page_link));
 }
 
 static size_t
