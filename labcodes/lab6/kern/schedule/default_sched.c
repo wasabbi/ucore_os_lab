@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <default_sched.h>
 
-#define USE_SKEW_HEAP 1
+#define USE_SKEW_HEAP 0
 
 /* You should define the BigStride constant here*/
 /* LAB6: 2015080062 */
@@ -139,14 +139,14 @@ stride_pick_next(struct run_queue *rq) {
       if(le == &(rq->run_list)){
             return NULL;
       }
-      uint32_t min = 0x7FFFFFFF;
-      struct proc_struct* min_p = NULL;
-      while (le != &(rq->run_list)) {
-          proc_struct* p = le2proc(le, run_list);
-          if(p->lab6_stride <= min){
-              min = p->lab6_stride;
-              min_p = p;
-          }
+
+     struct proc_struct *min_p = le2proc(le, run_link);
+     le = list_next(le);
+     while (le != &rq->run_list)
+     {
+          struct proc_struct *p = le2proc(le, run_link);
+          if ((int32_t)(min_p->lab6_stride - p->lab6_stride) > 0)
+               min_p = p;
           le = list_next(le);
       }
 #endif      
@@ -169,9 +169,11 @@ stride_pick_next(struct run_queue *rq) {
 static void
 stride_proc_tick(struct run_queue *rq, struct proc_struct *proc) {
      /* LAB6: 2015080062 */
-     proc->time_slice --;
-     if(proc->time_slice == 0){
-            proc->need_resched = 1;
+     if (proc->time_slice > 0) {
+          proc->time_slice --;
+     }
+     if (proc->time_slice == 0) {
+          proc->need_resched = 1;
      }
 }
 
