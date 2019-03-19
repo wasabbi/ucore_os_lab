@@ -490,6 +490,10 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
 
         goto bad_fork_cleanup_kstack;
     }
+    if(copy_files(clone_flags, proc) !=0){	//lab8             
+        goto bad_fork_cleanup_fs;
+    }
+
     copy_thread(proc, stack, tf);   //    4. call copy_thread to setup tf & context in proc_struct
     bool intr_flag;
     local_intr_save(intr_flag);
