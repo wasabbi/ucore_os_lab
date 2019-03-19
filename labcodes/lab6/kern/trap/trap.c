@@ -54,6 +54,8 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
+     /* LAB5 2015080062 */ 
+     //you should update your lab1 code (just add ONE or TWO lines of code), let user app to use syscall to get the service of ucore
         extern uintptr_t __vectors[];
         for(int i=0; i < 256; i++){
                 SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);        //#define SETGATE(gate, istrap, sel, off, dpl)
